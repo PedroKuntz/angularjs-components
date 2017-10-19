@@ -1,0 +1,239 @@
+<!doctype html>
+<html ng-app="app">
+
+<head>
+  <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.6/angular.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.22/pdfmake.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/0.4.1/html2canvas.min.js"></script>
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/css/bootstrap.min.css" integrity="sha384-/Y6pD6FV/Vv2HJnA6t+vslU6fwYXjCFtcEpHbNJ0lyAFsXTsjBbfaDjzALeQsN6M" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>  
+  <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.2.3/cytoscape.js"></script>
+          
+</head>
+
+<body style="background-color:#f0f2f5" ng-controller="listController"> 
+
+	<nav class="navbar-collapse collapse navbar-inverse">
+	  <div class="container-fluid">
+	    <div class="navbar-header">
+	      <a class="navbar-brand">PadNMS</a>
+	    </div>
+	    <ul class="nav navbar-nav navbar-right">
+	      <li><a ng-click="logout()"><span class="glyphicon glyphicon-log-in" style="font-size: 90%;"></span> Logout</a></li>
+	    </ul>
+	  </div>
+	</nav>
+
+	<nav class="navbar-collapse collapse navbar-default">
+	  <div class="container-fluid">
+	    <div class="navbar-header">
+	      <a class="navbar-brand" href="#" style="font-size: 90%;"><i class="glyphicon glyphicon-home"></i> Home</a>
+	      <a class="navbar-brand" href="#" style="font-size: 90%;"><i class="glyphicon glyphicon-hdd"></i> NEs</a>
+	      <a class="navbar-brand" href="#" style="font-size: 90%;"><i class="glyphicon glyphicon-transfer"></i> Networks</a>
+	      <a class="navbar-brand" href="#" style="font-size: 90%;"><i class="glyphicon glyphicon-road"></i> Services</a>
+	      <a class="navbar-brand" href="#" style="font-size: 90%;"><i class="glyphicon glyphicon-tasks"></i> Control Panel</a>
+	    </div>
+
+	  </div>
+	</nav>
+
+
+	<div class="container-fluid" style="background-color:white;font-size: 80%"> NEs / Collector List</div>   
+  	<div class="container-fluid"> 
+
+	    <h3>COLLECTOR <strong>LIST</strong> </h3>      
+    <div class="breadcrumb-wrapper active">	  
+		<div class="panel-group">
+		  <br></br>
+		  <div class="panel panel-default">
+
+		    <div class="panel-body">		     
+		    	<div class="table-header">
+		    		<div class="row">
+		    			<div class="container-fluid">
+					    	<div class="col-sm-9">
+					    		<div class="col-sm-4" ng-show="selected" style="margin-right: 5px;">
+					    			<a class="navbar-brand" ng-click="clear()" style="font-size: 90%;"><i class="glyphicon glyphicon-home"></i> Clear Selected</a>
+					    			<button class="waves-effect waves-light btn" ng-click="export()" style="font-size: 90%;">insert</button>
+					    			<button class="waves-effect waves-light btn" ng-click="export()" style="font-size: 90%;">delete</button>
+					    			<button class="waves-effect waves-light btn" ng-click="export()" style="font-size: 90%;">update</button>
+					    			<button class="waves-effect waves-light btn" ng-click="export()" style="font-size: 90%;">sync</button>
+						  		</div>
+					    	</div>
+					    	<div class="col-sm-3">
+						  		<div class="col-sm-12" >
+						  			<div class="dropdown">
+						  				<button class="btn dropdown-toggle" type="button" data-toggle="dropdown" style="font-size: 90%;float: right;margin-right: 5px;">View Columns</button>
+										<ul class="dropdown-menu">
+										<ul class="checkbox" ng-repeat="column in columns">
+									  		<li ng-show="{{column.visible}}">
+									  			<div class="checkbox">
+													<label><input type="checkbox" value="">{{ column.name }}</label>
+												</div>
+											</li>												
+										</ul>
+									</div>
+						  			<button class="waves-effect waves-light btn active" ng-click="export()" style="font-size: 90%;float: right;margin-right: 5px;"><i class="glyphicon glyphicon-export"></i> Export</button>
+						  			<button class="btn" data-toggle="modal" data-target="#filterModal" ng-click="filter()" style="font-size: 90%;float: right;margin-right: 5px;"><i class="glyphicon glyphicon-filter"></i> Filter</button>
+					    			<button class="waves-effect waves-light btn" ng-click="export()" style="font-size: 90%;float: right;margin-right: 5px;"><i class="glyphicon glyphicon-refresh"></i></button>	
+						  		</div>		
+						  	</div>
+						  	<br></br>
+						</div>
+		    		</div>
+	  		
+			  	</div>
+			  	<div class="table-selection-area">
+					<table id="exportthis" class="table table-striped highlight table-bordered" style="font-size: 80%;">
+				    <thead>
+				      <tr >
+				        <th ng-repeat="column in columns" ng-show="{{column.visible}}">{{column.name}}</th>
+				      </tr>
+				    </thead>
+				    <tbody>	
+					  <tr id="row_{{$index}}" ng-repeat="x in data track by $index" ng-click="onSelect(x.alarm,$index,$event)">		    
+					    <td id="index_{{$index}}" ng-hide="true">{{$index}}</td>
+					    <td id="state_{{$index}}">{{ x.state }}</td>
+					    <td id="status_{{$index}}">{{ x.status }}</td>
+					    <td id="sync_{{$index}}">{{ x.sync }}</td>
+					    <td id="name_{{$index}}">{{ x.name }}</td>
+					    <td id="full_{{$index}}">{{ x.full }}</td>
+					    <td id="collector_{{$index}}">{{ x.collector }}</td>
+					    <td id="platform_{{$index}}">{{ x.platform }}</td>
+					  </tr>
+					</tbody>
+					</table>
+				</div>
+		    </div>
+		  	</div>
+		</div>
+	</div>
+  </div>
+
+
+<!-- Modal -->
+<div id="filterModal" class="modal fade" role="dialog">
+  <div class="modal-dialog">
+
+    <!-- Modal content-->
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal">&times;</button>
+        <h4 class="modal-title">Modal Header</h4>
+      </div>
+      <div id="cy" class="modal-body">
+        
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+
+</body>
+
+</html>
+
+<script>
+var app = angular.module("app", []);
+
+ app.controller("listController", ["$scope",
+   function($scope) {
+
+   	var selectionList = [];
+
+   	$scope.selected = false;
+
+   	$scope.onSelect = function(data,index,$event){  
+   		$scope.selected = true;
+   		var myEl = angular.element( document.querySelector('#row_'+index) );
+   		if(selectionList.length > 0){
+	   		for(i in selectionList){
+	   			if(selectionList[i].index === index){
+					myEl.removeClass('info');
+	   			}else{
+					myEl.addClass('info');
+					selectionList.push({"index":index,"object":data});  
+	   			}
+	   		}   			
+   		}else{
+   			myEl.addClass('info');
+			selectionList.push({"index":index,"object":data}); 
+   		}
+   	}
+
+   	$scope.logout = function(){
+   		$location.url('http://localhost:8080/padnms');
+   	}
+
+   	$scope.clear = function(){
+   		$scope.selected = false;
+   	}
+ 	
+
+   	$scope.columns = [{"id":"1","name":"alarm","visible":"false"},
+   					  {"id":"2","name":"state","visible":"true"},
+   					  {"id":"3","name":"status","visible":"true"},
+   					  {"id":"4","name":"sync","visible":"true"},
+   					  {"id":"5","name":"name","visible":"true"},
+   					  {"id":"6","name":"full","visible":"true"},
+   					  {"id":"7","name":"collector","visible":"true"},
+   					  {"id":"8","name":"platform","visible":"true"}];
+
+    $scope.data=  [{"alarm":"1","state":"Safi","status":"sync","sync":"yes","name":"NE_DWDM","full":"COLLECTOR/NE_DWDM","collector":"COLLECTOR_DWDM","platform":"DWDM"},
+    			   {"alarm":"2","state":"Safi","status":"sync","sync":"yes","name":"NE_DWDM","full":"COLLECTOR/NE_DWDM","collector":"COLLECTOR_DWDM","platform":"DWDM"},
+    			   {"alarm":"3","state":"Safi","status":"sync","sync":"yes","name":"NE_DWDM","full":"COLLECTOR/NE_DWDM","collector":"COLLECTOR_DWDM","platform":"DWDM"},
+    			   {"alarm":"4","state":"Safi","status":"sync","sync":"yes","name":"NE_DWDM","full":"COLLECTOR/NE_DWDM","collector":"COLLECTOR_DWDM","platform":"DWDM"},
+    			   {"alarm":"2","state":"Safi","status":"sync","sync":"yes","name":"NE_DWDM","full":"COLLECTOR/NE_DWDM","collector":"COLLECTOR_DWDM","platform":"DWDM"},
+    			   {"alarm":"3","state":"Safi","status":"sync","sync":"yes","name":"NE_DWDM","full":"COLLECTOR/NE_DWDM","collector":"COLLECTOR_DWDM","platform":"DWDM"},
+    			   {"alarm":"4","state":"Safi","status":"sync","sync":"yes","name":"NE_DWDM","full":"COLLECTOR/NE_DWDM","collector":"COLLECTOR_DWDM","platform":"DWDM"},
+    			   {"alarm":"2","state":"Safi","status":"sync","sync":"yes","name":"NE_DWDM","full":"COLLECTOR/NE_DWDM","collector":"COLLECTOR_DWDM","platform":"DWDM"},
+    			   {"alarm":"3","state":"Safi","status":"sync","sync":"yes","name":"NE_DWDM","full":"COLLECTOR/NE_DWDM","collector":"COLLECTOR_DWDM","platform":"DWDM"},
+    			   {"alarm":"4","state":"Safi","status":"sync","sync":"yes","name":"NE_DWDM","full":"COLLECTOR/NE_DWDM","collector":"COLLECTOR_DWDM","platform":"DWDM"},
+    			   {"alarm":"2","state":"Safi","status":"sync","sync":"yes","name":"NE_DWDM","full":"COLLECTOR/NE_DWDM","collector":"COLLECTOR_DWDM","platform":"DWDM"},
+    			   {"alarm":"3","state":"Safi","status":"sync","sync":"yes","name":"NE_DWDM","full":"COLLECTOR/NE_DWDM","collector":"COLLECTOR_DWDM","platform":"DWDM"},
+    			   {"alarm":"4","state":"Safi","status":"sync","sync":"yes","name":"NE_DWDM","full":"COLLECTOR/NE_DWDM","collector":"COLLECTOR_DWDM","platform":"DWDM"},
+    			   {"alarm":"4","state":"Safi","status":"sync","sync":"yes","name":"NE_DWDM","full":"COLLECTOR/NE_DWDM","collector":"COLLECTOR_DWDM","platform":"DWDM"}    			       			   
+    			  ];
+     
+    $scope.export = function(){
+        html2canvas(document.getElementById('exportthis'), {
+            onrendered: function (canvas) {
+                var data = canvas.toDataURL();
+                var docDefinition = {
+                    content: [{
+                        image: data,
+                        width: 500,
+                    }]
+                };
+                pdfMake.createPdf(docDefinition).download("test.pdf");
+            }
+        });
+     }
+   }
+ ]);
+ </script>
+
+ <script>
+$('#exportthis').live('click', function(event) {
+    $(this).addClass('highlight').siblings().removeClass('highlight');
+});
+
+ </script>
+
+
+<style type="text/css">
+	tr:hover td {
+    	background: #c7d4dd !important;
+	}
+
+	tr.highlight td {
+    	background-color: red;
+	}	
+</style>
